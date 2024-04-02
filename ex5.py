@@ -15,7 +15,7 @@ class Graph:
     def __init__(self):
         self.nodes = {}  # key: node data, value: GraphNode object
     
-    def addNode(self, data):                        # exercise 1/2, implement basic methods
+    def addNode(self, data):
         if data not in self.nodes:
             new_node = GraphNode(data)
             self.nodes[data] = new_node
@@ -29,95 +29,85 @@ class Graph:
                 if node in n.adjacent:
                     del n.adjacent[node]
     
-    def addEdge(self, n1, n2, weight=1):            # adjusted for directed graph
+    def addEdge(self, n1, n2, weight=1):
         if n1.data in self.nodes and n2.data in self.nodes:
             self.nodes[n1.data].adjacent[n2] = weight
     
     def removeEdge(self, n1, n2):
-        if n1.data in self.nodes and n2.data in self.nodes:
-            if n2 in self.nodes[n1.data].adjacent:
-                del self.nodes[n1.data].adjacent[n2]
-            if n1 in self.nodes[n2.data].adjacent:
-                del self.nodes[n2.data].adjacent[n1]
+        if n1 in self.nodes and n2 in self.nodes[n1].adjacent:
+            del self.nodes[n1].adjacent[n2]
     
-    def importFromFile(self, file):                 # exercise 1/3, implement import function
-        try:                                        # with format specifications
+    def importFromFile(self, file):
+        try:
             with open(file, 'r') as f:
                 content = f.read().strip()
 
             if not content.startswith('strict graph'):
                 return None
 
-            # Extracting the content inside the curly braces
             content = content[content.find('{') + 1:content.rfind('}')].strip()
             lines = content.split('\n')
 
-            self.nodes.clear()  # Clear existing nodes and edges
+            self.nodes.clear()
 
             for line in lines:
-                parts = line.strip().split('->')  # adjusted for directed graphs
+                parts = line.strip().split('->')
                 if len(parts) != 2:
-                    return None  # Invalid edge format
+                    return None
 
                 node1, rest = parts[0].strip(), parts[1].strip()
                 node2, *weight_part = rest.replace('[', ' ').replace(']', ' ').split()
-                weight = 1  # default weight
+                weight = 1
 
                 if weight_part:
-                    try:
-                        weight = int(weight_part[1])
-                    except ValueError:
-                        return None  # Invalid weight value
+                    weight = int(weight_part[1])
 
                 n1, n2 = self.addNode(node1), self.addNode(node2)
-                if n2 in self.nodes[n1.data].adjacent:
-                    return None  # Duplicate edge detected
                 self.addEdge(n1, n2, weight)
-
         except Exception:
             return None
 
-        def isdag(self):            # Q2
-            visited = set()
-            rec_stack = set()
+    def isdag(self):
+        visited = set()
+        rec_stack = set()
 
-            def dfs(node):
-                visited.add(node)
-                rec_stack.add(node)
+        def dfs(node):
+            visited.add(node)
+            rec_stack.add(node)
 
-                for neighbour in self.nodes[node].adjacent:
-                    if neighbour.data not in visited:
-                        if not dfs(neighbour.data):
-                            return False
-                    elif neighbour.data in rec_stack:
+            for neighbour in self.nodes[node].adjacent:
+                if neighbour.data not in visited:
+                    if not dfs(neighbour.data):
                         return False
+                elif neighbour.data in rec_stack:
+                    return False
 
-                rec_stack.remove(node)
-                return True
-        
-            for node_data in self.nodes:
-                if node_data not in visited:
-                    if not dfs(node_data):
-                        return False
+            rec_stack.remove(node)
             return True
+    
+        for node_data in self.nodes:
+            if node_data not in visited:
+                if not dfs(node_data):
+                    return False
+        return True
 
-        def toposort(self):         # Q3
-            if not self.isdag():
-                return None
+    def toposort(self):
+        if not self.isdag():
+            return None
 
-            visited = set()
-            stack = []
+        visited = set()
+        stack = []
 
-            def dfs(node):
-                visited.add(node)
-                for neighbour in self.nodes[node].adjacent:
-                    if neighbour.data not in visited:
-                        dfs(neighbour.data)
-                stack.append(node)
+        def dfs(node):
+            visited.add(node)
+            for neighbour in self.nodes[node].adjacent:
+                if neighbour.data not in visited:
+                    dfs(neighbour.data)
+            stack.append(node)
 
-            for node_data in self.nodes:
-                if node_data not in visited:
-                    dfs(node_data)
+        for node_data in self.nodes:
+            if node_data not in visited:
+                dfs(node_data)
 
-            return stack[::-1]  # Return reversed stack
+        return stack[::-1]  # Return reversed stack
     
