@@ -3,7 +3,8 @@
 
 #1. Topological ordered can be implemented using the depth first algorithim. It is useful for this ordering
 # because it keeps track of the order of the nodes, which is an essential part of topological order. The
-# algorithim pushses the nodes onto a stack, maintaining the order within the stack.
+# algorithim vists the deepest part of the graph before going backwards, satisfying the "each node must come
+# after it's predecessor" condition of topological order.
 
 class GraphNode:
     def __init__(self, data):
